@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Node
+node_modules/
+
+# Env
+.env
+
+# Docker
+postgres_data/
+minio_data/
+
+# IDE
+.vscode/
+.idea/
+
+# Mac/Linux
+.DS_Store

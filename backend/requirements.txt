@@ -8,3 +8,4 @@ pydantic-settings==2.5.2
 python-multipart==0.0.12    # для загрузки файлов
 boto3==1.35.30               # S3/MinIO клиент
 Pillow==10.4.0               # ресайз фото
+

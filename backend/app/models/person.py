@@ -1,3 +1,4 @@
+from datetime import date
 from sqlalchemy import String, Text, Date
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -12,9 +13,9 @@ class Person(Base):
     first_name: Mapped[str] = mapped_column(String(100))
     last_name: Mapped[str] = mapped_column(String(100))
 
-    birth_date: Mapped[Date | None]
-    death_date: Mapped[Date | None]
+    birth_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    death_date: Mapped[date | None] = mapped_column(Date, nullable=True)
 
-    bio: Mapped[str | None] = mapped_column(Text())
+    bio: Mapped[str | None] = mapped_column(Text(), nullable=True)
 
-    photo_url: Mapped[str | None] = mapped_column(String(500))
+    photo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)

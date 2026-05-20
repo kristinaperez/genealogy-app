@@ -8,11 +8,21 @@ class PersonCreate(BaseModel):
     birth_date: date | None = None
     death_date: date | None = None
     bio: str | None = None
-    photo_url: str | None = None
 
 
-class PersonRead(PersonCreate):
+class PersonUpdate(BaseModel):
+    """Все поля опциональны — PATCH-семантика"""
+    first_name: str | None = None
+    last_name: str | None = None
+    birth_date: date | None = None
+    death_date: date | None = None
+    bio: str | None = None
+
+
+class PersonResponse(PersonCreate):
     id: int
+    photo_url: str | None = None
 
     class Config:
         from_attributes = True
+

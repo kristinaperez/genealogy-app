@@ -291,3 +291,131 @@ body {
   .detail-lifespan { justify-content: center; }
 }
 
+/* ─── Relatives ───────────────────────────────────────────────────────────── */
+.rel-group {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-bottom: 12px;
+}
+.rel-group-label {
+  font-size: .78rem; font-weight: 500;
+  text-transform: uppercase; letter-spacing: .07em;
+  color: var(--muted);
+}
+.rel-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.rel-chip {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 5px 14px 5px 6px;
+  font-family: "Lora", serif; font-size: .88rem;
+  color: var(--text); cursor: pointer;
+  transition: border-color .2s, box-shadow .2s;
+}
+.rel-chip:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+
+.chip-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  overflow: hidden; background: var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .7rem; color: var(--muted); flex-shrink: 0;
+}
+.chip-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ─── Add relative panel ──────────────────────────────────────────────────── */
+.add-rel-panel {
+  display: flex; flex-direction: column; gap: 10px;
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-top: 4px;
+}
+.add-rel-label {
+  font-size: .85rem; color: var(--muted); font-style: italic;
+}
+.rel-select {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 9px 12px;
+  font-family: "Lora", serif; font-size: .92rem;
+  color: var(--text); outline: none;
+  transition: border-color .2s;
+}
+.rel-select:focus { border-color: var(--accent); }
+.add-rel-actions { display: flex; gap: 10px; }
+
+/* ─── Tabs ────────────────────────────────────────────────────────────────── */
+.tab-nav {
+  display: flex; gap: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 3px;
+}
+.tab-btn {
+  background: none; border: none;
+  border-radius: calc(var(--radius) - 2px);
+  padding: 6px 18px;
+  font-family: "Lora", serif; font-size: .88rem;
+  color: var(--muted); cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn--active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  font-weight: 500;
+}
+
+/* ─── Tree view ───────────────────────────────────────────────────────────── */
+.app-main--tree {
+  max-width: 100%;
+  padding: 0;
+  height: calc(100vh - 57px);  /* вся высота минус хедер */
+}
+.tree-wrap {
+  width: 100%; height: 100%;
+}
+
+/* ─── PersonNode ──────────────────────────────────────────────────────────── */
+.pnode {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  width: 180px;
+  cursor: pointer;
+  transition: border-color .2s, box-shadow .2s;
+  box-shadow: var(--shadow);
+}
+.pnode:hover, .pnode--selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(139,69,19,.15);
+}
+.pnode-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  overflow: hidden; flex-shrink: 0;
+  background: var(--border);
+  display: flex; align-items: center; justify-content: center;
+}
+.pnode-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.pnode-initials {
+  font-family: "Playfair Display", serif;
+  font-size: .95rem; color: var(--muted);
+}
+.pnode-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pnode-name {
+  font-family: "Lora", serif; font-size: .82rem;
+  font-weight: 500; line-height: 1.3;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pnode-years {
+  font-size: .72rem; color: var(--muted);
+  font-style: italic;
+}
+

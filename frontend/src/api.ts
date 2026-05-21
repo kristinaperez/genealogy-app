@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_URL;
+const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 export type Person = {
   id: number;
@@ -128,6 +128,7 @@ async createPerson(data: PersonPayload): Promise<Person> {
 
   
   // ── Relationships ─────────────────────────────────────────────────────────
+  listRelationships: () => req<RelationshipResponse[]>("/relationships/"),
   getRelatives: (personId: number) =>
     req<RelativeInfo[]>(`/relationships/person/${personId}`),
   createRelationship: (data: RelationshipPayload) =>

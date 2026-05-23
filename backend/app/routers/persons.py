@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from typing import Annotated
 
 from app.db.database import get_db
 from app.models.person import Person
@@ -37,12 +40,44 @@ async def list_persons(
 @router.get("/{person_id}", response_model=PersonResponse)
 async def get_person(
     person_id: int,
-    db: AsyncSession = Depends(get_db),
-):
-    person = await db.get(Person, person_id)
-    if not person:
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Person:
+    result = await db.execute(
+        select(Person)
+        .options(selectinload(Person.birth_city))
+        .where(Person.id == person_id)
+    )
+    person = result.scalar_one_or_none()
+
+    if person is None:
         raise HTTPException(status_code=404, detail="Person not found")
+
     return person
+
+
+@router.get("/wikidata/{wikidata_id}", response_model=PersonResponse)
+async def get_person_by_wikidata(
+    wikidata_id: str,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Person:
+    """
+    Возвращает карточку человека по Wikidata QID (например, Q5593).
+    """
+    result = await db.execute(
+        select(Person)
+        .options(selectinload(Person.birth_city))
+        .where(Person.wikidata_id == wikidata_id)
+    )
+    person = result.scalar_one_or_none()
+
+    if person is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Person with wikidata_id '{wikidata_id}' not found",
+        )
+
+    return person
+
 
 
 # ─── PATCH /persons/{id} ───────────────────────────────────────────────────────

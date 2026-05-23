@@ -145,8 +145,8 @@ export default function FamilyTree({ onSelect }: Props) {
   );
 
   if (loading) return <div className="state-msg">Строим дерево…</div>;
-  if (error)   return <div className="state-msg error">Ошибка: {error}</div>;
-  if (nodes.length === 0) return <div className="state-msg">Добавьте людей, чтобы увидеть дерево</div>;
+  if (error)   return <div className="state-msg error">Error: {error}</div>;
+  if (nodes.length === 0) return <div className="state-msg">Añade personas para ver el árbol</div>;
 
   return (
     <div className="tree-wrap">

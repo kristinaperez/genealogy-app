@@ -5,7 +5,10 @@ asyncpg==0.29.0
 alembic==1.13.3
 pydantic==2.9.2
 pydantic-settings==2.5.2
-python-multipart==0.0.12    # для загрузки файлов
-boto3==1.35.30               # S3/MinIO клиент
-Pillow==10.4.0               # ресайз фото
+python-multipart==0.0.12
+boto3==1.35.30
+Pillow==10.4.0
+httpx==0.27.2
+SPARQLWrapper==2.0.0
+rapidfuzz==3.9.7
 

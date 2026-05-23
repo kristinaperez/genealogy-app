@@ -39,26 +39,26 @@ export default function PersonList({ onSelect }: Props) {
   });
 
   if (loading) return <div className="state-msg">Загрузка…</div>;
-  if (error) return <div className="state-msg error">Ошибка: {error}</div>;
+  if (error) return <div className="state-msg error">Error: {error}</div>;
 
   return (
     <div className="person-list-page">
       <div className="list-header">
         <h1 className="list-title">
-          Все люди
+          Todos las personas
           <span className="list-count">{persons.length}</span>
         </h1>
         <input
           className="search-input"
           type="search"
-          placeholder="Поиск по имени…"
+          placeholder="Buscar por nombre..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
 
       {filtered.length === 0 && (
-        <div className="state-msg">Никого не найдено</div>
+        <div className="state-msg">No se ha encontrado a nadie</div>
       )}
 
       <ul className="person-grid">

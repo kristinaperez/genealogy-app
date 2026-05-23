@@ -53,8 +53,8 @@ export default function PersonForm({ editId, onBack, onSaved }: Props) {
 
   function validate(): boolean {
     const e: typeof errors = {};
-    if (!form.first_name.trim()) e.first_name = "Введите имя";
-    if (!form.last_name.trim()) e.last_name = "Введите фамилию";
+    if (!form.first_name.trim()) e.first_name = "Escribe tu nombre";
+    if (!form.last_name.trim()) e.last_name = "Escribe tu apellido 1";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -69,7 +69,7 @@ export default function PersonForm({ editId, onBack, onSaved }: Props) {
         : await api.createPerson(form);
       onSaved(person.id);
     } catch (e: any) {
-      alert("Ошибка сохранения: " + e.message);
+      alert("Error al guardar: " + e.message);
     } finally {
       setSaving(false);
     }
@@ -84,17 +84,17 @@ export default function PersonForm({ editId, onBack, onSaved }: Props) {
       </button>
 
       <h1 className="form-title">
-        {editId ? "Редактировать" : "Новый человек"}
+        {editId ? "Editar" : "La persona nueva"}
       </h1>
 
       <form className="person-form" onSubmit={handleSubmit} noValidate>
         <div className="form-row">
           <div className="form-field">
-            <label>Имя *</label>
+            <label>Nombre *</label>
             <input
               value={form.first_name ?? ""}
               onChange={(e) => set("first_name", e.target.value)}
-              placeholder="Иван"
+              placeholder="Pilar"
               className={errors.first_name ? "input-error" : ""}
             />
             {errors.first_name && (
@@ -103,11 +103,11 @@ export default function PersonForm({ editId, onBack, onSaved }: Props) {
           </div>
 
           <div className="form-field">
-            <label>Фамилия *</label>
+            <label>Apellido *</label>
             <input
               value={form.last_name ?? ""}
               onChange={(e) => set("last_name", e.target.value)}
-              placeholder="Петров"
+              placeholder="Loren"
               className={errors.last_name ? "input-error" : ""}
             />
             {errors.last_name && (
@@ -118,7 +118,7 @@ export default function PersonForm({ editId, onBack, onSaved }: Props) {
 
         <div className="form-row">
           <div className="form-field">
-            <label>Дата рождения</label>
+            <label>Fecha de nacimiento</label>
             <input
               type="date"
               value={form.birth_date ?? ""}
@@ -127,7 +127,7 @@ export default function PersonForm({ editId, onBack, onSaved }: Props) {
           </div>
 
           <div className="form-field">
-            <label>Дата смерти</label>
+            <label>Fecha de defunción</label>
             <input
               type="date"
               value={form.death_date ?? ""}
@@ -137,21 +137,21 @@ export default function PersonForm({ editId, onBack, onSaved }: Props) {
         </div>
 
         <div className="form-field">
-          <label>Биография</label>
+          <label>Biografía</label>
           <textarea
             value={form.bio ?? ""}
             onChange={(e) => set("bio", e.target.value)}
-            placeholder="Краткая биография…"
+            placeholder="Breve biografía…"
             rows={5}
           />
         </div>
 
         <div className="form-actions">
           <button type="button" className="btn-cancel" onClick={onBack}>
-            Отмена
+            Cancelación
           </button>
           <button type="submit" className="btn-save" disabled={saving}>
-            {saving ? "Сохранение…" : editId ? "Сохранить" : "Создать"}
+            {saving ? "Conservación…" : editId ? "Guardar" : "Crear"}
           </button>
         </div>
       </form>

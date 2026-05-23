@@ -1,1 +1,1 @@
-from app.models.person import Person
+from app.models.models import Person, City, CityPeople

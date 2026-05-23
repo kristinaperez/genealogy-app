@@ -3,12 +3,16 @@ import PersonList from "./components/PersonList";
 import PersonCard from "./components/PersonCard";
 import PersonForm from "./components/PersonForm";
 import FamilyTree from "./components/FamilyTree";
+import FamousPeopleImport from "./components/FamousPeopleImport";
+
 import "./App.css";
 
-type Tab = "list" | "tree";
+type Tab = "list" | "tree" | "import";
 
 export type View =
   | { type: "list" }
+  | { type: "tree" }
+  | { type: "import" }
   | { type: "card"; id: number }
   | { type: "form"; editId?: number; from?: Tab };
 
@@ -17,11 +21,20 @@ export default function App() {
   const [activeTab,  setActiveTab]  = useState<Tab>("list");
 
 function goTab(tab: Tab) {
-    setActiveTab(tab);
-    setView({ type: tab === "list" ? "list" : "list", ...(tab === "tree" ? { type: "tree" as any } : {}) });
-    if (tab === "list") setView({ type: "list" });
-    if (tab === "tree") setView({ type: "tree" as any });
+  setActiveTab(tab);
+
+  if (tab === "list") {
+    setView({ type: "list" });
   }
+
+  if (tab === "tree") {
+    setView({ type: "tree" });
+  }
+
+  if (tab === "import") {
+    setView({ type: "import" });
+  }
+}
 
   function openCard(id: number) {
     setView({ type: "card", id, from: activeTab });
@@ -57,6 +70,13 @@ function goTab(tab: Tab) {
             >
               Дерево
             </button>
+
+            <button
+             className={`tab-btn ${activeTab === "import" ? "tab-btn--active" : ""}`}
+             onClick={() => goTab("import")}
+             >
+             Импорт
+            </button>
           </nav>
 
           <button className="btn-add" onClick={() => setView({ type: "form", from: activeTab })}>
@@ -74,6 +94,9 @@ function goTab(tab: Tab) {
         )}
         {(view as any).type === "tree" && (
           <FamilyTree onSelect={openCard} />
+        )}
+        {view.type === "import" && (
+         <FamousPeopleImport />
         )}
         {view.type === "card" && (
           <PersonCard

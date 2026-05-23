@@ -1,215 +1,306 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { api } from "../api";
-import type { Person, RelativeInfo, RelationType } from "../api";
+/**
+ * PersonCard — компактная карточка-превью для списков, поиска, карточки города.
+ * Не содержит логики редактирования/удаления — только отображение.
+ *
+ * Использование:
+ *   <PersonCard personId={42} />
+ *   <PersonCard personId={42} onClick={() => navigate(`/persons/${42}`)} />
+ */
 
-interface Props {
+import { useEffect, useState } from "react";
+
+// ─── Types ─────────────────────────────────────────────────────────────────────
+
+interface City {
   id: number;
-  onBack: () => void;
-  onEdit: (id: number) => void;
-  onSelect: (id: number) => void;
+  name: string;
+  province?: string;
+  coat_of_arms_url?: string;
 }
 
-const ROLE_LABEL: Record<RelationType, string> = {
-  parent: "Родители",
-  child:  "Дети",
-  spouse: "Супруг(а)",
-};
-
-function formatFullDate(d: string | null) {
-  if (!d) return "—";
-  return new Date(d).toLocaleDateString("ru-RU", {
-    day: "numeric", month: "long", year: "numeric",
-  });
+interface Person {
+  id: number;
+  wikidata_id: string;
+  full_name: string;
+  birth_date?: string;
+  death_date?: string;
+  occupation?: string;
+  summary_es?: string;
+  main_image_url?: string;
+  source_url?: string;
+  birth_city?: City;
 }
 
-export default function PersonCard({ id, onBack, onEdit, onSelect }: Props) {
-  const [person,     setPerson]     = useState<Person | null>(null);
-  const [relatives,  setRelatives]  = useState<RelativeInfo[]>([]);
-  const [allPersons, setAllPersons] = useState<Person[]>([]);
-  const [loading,    setLoading]    = useState(true);
-  const [error,      setError]      = useState<string | null>(null);
-  const [uploading,  setUploading]  = useState(false);
-  const [deleting,   setDeleting]   = useState(false);
-  const [addRole,    setAddRole]    = useState<RelationType | null>(null);
-  const [pickedId,   setPickedId]   = useState<number | "">("");
-  const [linking,    setLinking]    = useState(false);
+interface PersonCardProps {
+  personId: number;
+  /** Если передан — карточка становится кликабельной */
+  onClick?: () => void;
+}
 
-  const fileRef = useRef<HTMLInputElement>(null);
+// ─── Helpers ───────────────────────────────────────────────────────────────────
 
-  const load = useCallback(async () => {
-    const [p, rels] = await Promise.all([
-      api.getPerson(id),
-      api.getRelatives(id),
-    ]);
-    setPerson(p);
-    setRelatives(rels);
-  }, [id]);
+function formatYear(iso?: string): string | null {
+  const m = iso?.match(/^(\d{4})/);
+  return m ? m[1] : null;
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+// ─── Sub-components ────────────────────────────────────────────────────────────
+
+function Skeleton({ height, width = "100%" }: { height: number; width?: string }) {
+  return (
+    <div
+      style={{
+        height,
+        width,
+        borderRadius: "var(--border-radius-sm)",
+        background: "var(--color-background-secondary)",
+        animation: "skPulse 1.4s ease-in-out infinite",
+      }}
+    />
+  );
+}
+
+function BirthInfo({
+  city,
+  birthYear,
+  deathYear,
+}: {
+  city?: City;
+  birthYear: string | null;
+  deathYear: string | null;
+}) {
+  if (!city && !birthYear) return null;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 8 }}>
+      {(birthYear || deathYear) && (
+        <p style={{ margin: 0, fontSize: 13, color: "var(--color-text-tertiary)" }}>
+          {birthYear && `р. ${birthYear}`}
+          {deathYear && ` · † ${deathYear}`}
+        </p>
+      )}
+      {city && (
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          {city.coat_of_arms_url ? (
+            <img
+              src={city.coat_of_arms_url}
+              alt=""
+              style={{ width: 14, height: 14, objectFit: "contain" }}
+            />
+          ) : (
+            <span style={{ fontSize: 13, color: "var(--color-text-tertiary)" }}>📍</span>
+          )}
+          <p style={{ margin: 0, fontSize: 13, color: "var(--color-text-secondary)" }}>
+            {city.name}
+            {city.province ? `, ${city.province}` : ""}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main component ────────────────────────────────────────────────────────────
+
+export default function PersonCard({ personId, onClick }: PersonCardProps) {
+  const [person, setPerson] = useState<Person | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
-    load().catch((e) => setError(e.message)).finally(() => setLoading(false));
-  }, [load]);
+    setImgError(false);
+    fetch(`/api/persons/${personId}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then(setPerson)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [personId]);
 
-  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file || !person) return;
-    setUploading(true);
-    try {
-      const updated = await api.uploadPhoto(person.id, file);
-      setPerson(updated);
-    } catch (e: any) {
-      alert("Ошибка загрузки: " + e.message);
-    } finally {
-      setUploading(false);
-    }
+  const cardStyle: React.CSSProperties = {
+    background: "var(--color-background-primary)",
+    border: "0.5px solid var(--color-border-tertiary)",
+    borderRadius: "var(--border-radius-lg)",
+    padding: "1rem 1.25rem",
+    maxWidth: 420,
+    cursor: onClick ? "pointer" : "default",
+    transition: "border-color 0.15s",
+  };
+
+  // ── Loading ──────────────────────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div style={cardStyle}>
+        <style>{`@keyframes skPulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
+        <div style={{ display: "flex", gap: 20 }}>
+          <div
+            style={{
+              width: 96,
+              height: 120,
+              borderRadius: "var(--border-radius-md)",
+              background: "var(--color-background-secondary)",
+              animation: "skPulse 1.4s ease-in-out infinite",
+              flexShrink: 0,
+            }}
+          />
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10, paddingTop: 4 }}>
+            <Skeleton height={22} width="70%" />
+            <Skeleton height={13} width="40%" />
+            <Skeleton height={13} width="55%" />
+          </div>
+        </div>
+        <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+          <Skeleton height={13} />
+          <Skeleton height={13} />
+          <Skeleton height={13} width="80%" />
+        </div>
+      </div>
+    );
   }
 
-  async function handleDelete() {
-    if (!person) return;
-    if (!confirm(`Удалить ${person.first_name} ${person.last_name}?`)) return;
-    setDeleting(true);
-    try {
-      await api.deletePerson(person.id);
-      onBack();
-    } catch (e: any) {
-      alert("Ошибка удаления: " + e.message);
-      setDeleting(false);
-    }
+  // ── Error ────────────────────────────────────────────────────────────────────
+  if (error || !person) {
+    return (
+      <div style={{ ...cardStyle, borderColor: "var(--color-border-danger)" }}>
+        <p style={{ color: "var(--color-text-danger)", fontSize: 13, margin: 0 }}>
+          No se ha podido cargar el perfil #{personId}
+          {error ? `: ${error}` : ""}
+        </p>
+      </div>
+    );
   }
 
-  async function openAddPanel(role: RelationType) {
-    setAddRole(role);
-    setPickedId("");
-    const all = await api.listPersons();
-    const relIds = new Set([id, ...relatives.map((r) => r.id)]);
-    setAllPersons(all.filter((p) => !relIds.has(p.id)));
-  }
-
-  async function handleLink() {
-    if (!pickedId || !addRole || !person) return;
-    setLinking(true);
-    try {
-      if (addRole === "child") {
-        await api.createRelationship({ person_a: person.id, person_b: Number(pickedId), type: "parent" });
-      } else if (addRole === "parent") {
-        await api.createRelationship({ person_a: Number(pickedId), person_b: person.id, type: "parent" });
-      } else {
-        await api.createRelationship({ person_a: person.id, person_b: Number(pickedId), type: "spouse" });
-      }
-      setAddRole(null);
-      await load();
-    } catch (e: any) {
-      alert("Ошибка: " + e.message);
-    } finally {
-      setLinking(false);
-    }
-  }
-
-  if (loading) return <div className="state-msg">Загрузка…</div>;
-  if (error || !person) return <div className="state-msg error">Ошибка: {error ?? "not found"}</div>;
-
-  const initials = (person.first_name[0] + person.last_name[0]).toUpperCase();
-  const groups: RelationType[] = ["parent", "spouse", "child"];
+  // ── Content ──────────────────────────────────────────────────────────────────
+  const birthYear = formatYear(person.birth_date);
+  const deathYear = formatYear(person.death_date);
+  const showInitials = !person.main_image_url || imgError;
+  const initials = getInitials(person.full_name);
 
   return (
-    <div className="person-detail-page">
-      <button className="btn-back" onClick={onBack}>← Назад</button>
+    <div
+      style={cardStyle}
+      onClick={onClick}
+      onMouseEnter={(e) => {
+        if (onClick)
+          (e.currentTarget as HTMLDivElement).style.borderColor =
+            "var(--color-border-primary)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLDivElement).style.borderColor =
+          "var(--color-border-tertiary)";
+      }}
+    >
+      <style>{`@keyframes skPulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
 
-      {/* Hero */}
-      <div className="detail-hero">
-        <div className="detail-photo" onClick={() => fileRef.current?.click()} title="Изменить фото">
-          {person.photo_url
-            ? <img src={person.photo_url} alt={person.first_name} />
-            : <span className="detail-initials">{initials}</span>}
-          <div className="photo-overlay">{uploading ? "Загрузка…" : "Изменить фото"}</div>
-        </div>
-        <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handlePhotoChange} />
-
-        <div className="detail-identity">
-          <h1 className="detail-name">{person.first_name} {person.last_name}</h1>
-          <div className="detail-lifespan">
-            <span>р. {formatFullDate(person.birth_date)}</span>
-            {person.death_date && <span>† {formatFullDate(person.death_date)}</span>}
-          </div>
-        </div>
-      </div>
-
-      {/* Биография */}
-      {person.bio && (
-        <section className="detail-section">
-          <h2 className="section-title">Биография</h2>
-          <p className="detail-bio">{person.bio}</p>
-        </section>
-      )}
-
-      {/* Родственники */}
-      <section className="detail-section">
-        <h2 className="section-title">Родственники</h2>
-
-        {groups.map((role) => {
-          const group = relatives.filter((r) => r.role === role);
-          if (group.length === 0) return null;
-          return (
-            <div key={role} className="rel-group">
-              <span className="rel-group-label">{ROLE_LABEL[role]}</span>
-              <div className="rel-chips">
-                {group.map((r) => (
-                  <button key={r.id} className="rel-chip" onClick={() => onSelect(r.id)}>
-                    <div className="chip-avatar">
-                      {r.photo_url
-                        ? <img src={r.photo_url} alt={r.first_name} />
-                        : <span>{(r.first_name[0] + r.last_name[0]).toUpperCase()}</span>}
-                    </div>
-                    {r.first_name} {r.last_name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-
-        {/* Панель добавления */}
-        {addRole === null ? (
-          <div className="relatives-placeholder">
-            <button className="btn-rel" onClick={() => openAddPanel("parent")}>+ Родитель</button>
-            <button className="btn-rel" onClick={() => openAddPanel("child")}>+ Ребёнок</button>
-            <button className="btn-rel" onClick={() => openAddPanel("spouse")}>+ Супруг(а)</button>
+      {/* Photo / Initials + Name block */}
+      <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+        {showInitials ? (
+          <div
+            style={{
+              width: 96,
+              height: 120,
+              borderRadius: "var(--border-radius-md)",
+              background: "var(--color-background-info)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 26,
+              fontWeight: 500,
+              color: "var(--color-text-info)",
+              flexShrink: 0,
+              letterSpacing: 1,
+            }}
+          >
+            {initials}
           </div>
         ) : (
-          <div className="add-rel-panel">
-            <span className="add-rel-label">
-              Добавить {addRole === "parent" ? "родителя" : addRole === "child" ? "ребёнка" : "супруга"}:
-            </span>
-            <select
-              className="rel-select"
-              value={pickedId}
-              onChange={(e) => setPickedId(Number(e.target.value))}
-            >
-              <option value="">— выберите человека —</option>
-              {allPersons.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.first_name} {p.last_name}
-                </option>
-              ))}
-            </select>
-            <div className="add-rel-actions">
-              <button className="btn-rel" onClick={() => setAddRole(null)}>Отмена</button>
-              <button className="btn-save" onClick={handleLink} disabled={!pickedId || linking}>
-                {linking ? "Сохранение…" : "Связать"}
-              </button>
-            </div>
-          </div>
+          <img
+            src={person.main_image_url}
+            alt={person.full_name}
+            onError={() => setImgError(true)}
+            style={{
+              width: 96,
+              height: 120,
+              objectFit: "cover",
+              borderRadius: "var(--border-radius-md)",
+              flexShrink: 0,
+              border: "0.5px solid var(--color-border-tertiary)",
+            }}
+          />
         )}
-      </section>
 
-      {/* Действия */}
-      <div className="detail-actions">
-        <button className="btn-edit" onClick={() => onEdit(person.id)}>Редактировать</button>
-        <button className="btn-delete" onClick={handleDelete} disabled={deleting}>
-          {deleting ? "Удаление…" : "Удалить"}
-        </button>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h2 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 500, lineHeight: 1.3 }}>
+            {person.full_name}
+          </h2>
+          {person.occupation && (
+            <p
+              style={{
+                margin: 0,
+                fontSize: 13,
+                color: "var(--color-text-secondary)",
+                fontStyle: "italic",
+              }}
+            >
+              {person.occupation}
+            </p>
+          )}
+          <BirthInfo city={person.birth_city} birthYear={birthYear} deathYear={deathYear} />
+        </div>
       </div>
+
+      {/* Summary */}
+      {person.summary_es && (
+        <div
+          style={{
+            borderTop: "0.5px solid var(--color-border-tertiary)",
+            marginTop: 16,
+            paddingTop: 14,
+          }}
+        >
+          <p
+            style={{
+              margin: 0,
+              fontSize: 14,
+              lineHeight: 1.7,
+              color: "var(--color-text-secondary)",
+              display: "-webkit-box",
+              WebkitLineClamp: 4,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            {person.summary_es}
+          </p>
+        </div>
+      )}
+
+      {/* Wikipedia link */}
+      {person.source_url && (
+        <div style={{ marginTop: 14 }}>
+          <a
+            href={person.source_url}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            style={{ fontSize: 12, color: "var(--color-text-tertiary)", textDecoration: "none" }}
+          >
+            Wikipedia ES ↗
+          </a>
+        </div>
+      )}
     </div>
   );
 }

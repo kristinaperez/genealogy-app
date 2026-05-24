@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Handle, Position } from "@xyflow/react";
 import type { Person } from "../api";
 
@@ -21,18 +21,46 @@ function lifeYears(p: Person) {
   return d ? `${b} — ${d}` : `р. ${b}`;
 }
 
+// Разбиваем полное имя на строки по 2 слова
+function formatName(fullName: string): string[] {
+  const parts = fullName.trim().split(" ").filter(Boolean);
+  const lines: string[] = [];
+  for (let i = 0; i < parts.length; i += 2) {
+    lines.push(parts.slice(i, i + 2).join(" "));
+  }
+  return lines;
+}
+
 function PersonNode({ data: { person }, selected }: Props) {
+  const [hovered, setHovered] = useState(false);
+  const expanded = selected || hovered;
+  const nameLines = formatName(person.full_name ?? "—");
+
   return (
     <>
       <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
-      <div className={`pnode ${selected ? "pnode--selected" : ""}`}>
+      <div
+        className={`pnode ${selected ? "pnode--selected" : ""} ${expanded ? "pnode--expanded" : ""}`}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
         <div className="pnode-avatar">
           {person.main_image_url
             ? <img src={person.main_image_url} alt={person.full_name ?? ""} />
             : <span className="pnode-initials">{initials(person)}</span>}
         </div>
         <div className="pnode-info">
-          <span className="pnode-name">{person.full_name ?? "—"}</span>
+          {expanded ? (
+            <span className="pnode-name pnode-name--full">
+              {nameLines.map((line, i) => (
+                <span key={i}>{line}<br /></span>
+              ))}
+            </span>
+          ) : (
+            <span className="pnode-name pnode-name--short">
+              {nameLines[0] ?? "—"}
+            </span>
+          )}
           {person.birth_date && (
             <span className="pnode-years">{lifeYears(person)}</span>
           )}

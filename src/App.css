@@ -182,3 +182,20 @@
     border-right-color: var(--border);
   }
 }
+
+.pnode--expanded {
+  min-width: 180px;
+  z-index: 10;
+}
+
+.pnode-name--short {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.pnode-name--full {
+  white-space: normal;
+  word-break: break-word;
+}

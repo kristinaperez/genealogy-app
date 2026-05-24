@@ -70,13 +70,6 @@ function goTab(tab: Tab) {
             >
               Arbol
             </button>
-
-            <button
-             className={`tab-btn ${activeTab === "import" ? "tab-btn--active" : ""}`}
-             onClick={() => goTab("import")}
-             >
-             Import
-            </button>
           </nav>
 
           <button className="btn-add" onClick={() => setView({ type: "form", from: activeTab })}>
@@ -94,9 +87,6 @@ function goTab(tab: Tab) {
         )}
         {(view as any).type === "tree" && (
           <FamilyTree onSelect={openCard} />
-        )}
-        {view.type === "import" && (
-         <FamousPeopleImport />
         )}
         {view.type === "card" && (
           <PersonDetailPage

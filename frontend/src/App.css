@@ -422,8 +422,20 @@ body {
   font-weight: 500; line-height: 1.3;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.pnode--expanded {
+  min-width: 180px;
+  z-index: 10;
+  position: relative;
+}
 .pnode-years {
   font-size: .72rem; color: var(--muted);
   font-style: italic;
 }
 
+.react-flow__node:hover {
+  z-index: 1000 !important;
+}
+
+.react-flow__node.selected {
+  z-index: 1000 !important;
+}

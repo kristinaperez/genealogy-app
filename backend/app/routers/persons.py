@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,7 +11,7 @@ from app.db.database import get_db
 from app.models.person import Person
 from app.schemas.person import PersonCreate, PersonUpdate, PersonResponse
 
-router = APIRouter(prefix="/persons", tags=["persons"])
+router = APIRouter(prefix="/api/persons", tags=["persons"])
 
 
 # ─── POST /persons ─────────────────────────────────────────────────────────────
@@ -18,7 +20,11 @@ async def create_person(
     data: PersonCreate,
     db: AsyncSession = Depends(get_db),
 ):
-    person = Person(**data.model_dump())
+    payload = data.model_dump()
+    if not payload.get("wikidata_id"):
+        payload["wikidata_id"] = f"manual-{uuid.uuid4().hex[:10]}"
+
+    person = Person(**payload)
     db.add(person)
     await db.commit()
     await db.refresh(person)

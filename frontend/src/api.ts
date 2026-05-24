@@ -2,20 +2,24 @@ const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 export type Person = {
   id: number;
-  first_name: string;
-  last_name: string;
+  wikidata_id: string;
+  full_name?: string | null;
   birth_date?: string | null;
   death_date?: string | null;
-  bio?: string | null;
-  photo_url?: string | null;
+  occupation?: string | null;
+  summary_es?: string | null;
+  main_image_url?: string | null;
+  source_url?: string | null;
+  confidence_score?: number | null;
 };
 
 export type PersonPayload = {
-  first_name: string;
-  last_name: string;
+  full_name?: string | null;
   birth_date?: string | null;
   death_date?: string | null;
-  bio?: string | null;
+  occupation?: string | null;
+  summary_es?: string | null;
+  main_image_url?: string | null;
 };
 
 
@@ -23,9 +27,8 @@ export type RelationType = "parent" | "child" | "spouse";
  
 export interface RelativeInfo {
   id: number;
-  first_name: string;
-  last_name: string;
-  photo_url: string | null;
+  full_name?: string | null;
+  main_image_url?: string | null;
   role: RelationType;
 }
  
@@ -55,7 +58,7 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   async listPersons(): Promise<Person[]> {
-    const res = await fetch(`${BASE}/persons/`);
+    const res = await fetch(`${BASE}/api/persons/`);
 
     if (!res.ok) {
       throw new Error("Failed to fetch persons");
@@ -65,7 +68,7 @@ export const api = {
   },
 
   async getPerson(id: number): Promise<Person> {
-    const res = await fetch(`${BASE}/persons/${id}`);
+    const res = await fetch(`${BASE}/api/persons/${id}`);
 
     if (!res.ok) {
       throw new Error("Failed to fetch person");
@@ -75,7 +78,7 @@ export const api = {
   },
 
 async createPerson(data: PersonPayload): Promise<Person> {
-    const res = await fetch(`${BASE}/persons/`, {
+    const res = await fetch(`${BASE}/api/persons/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -91,7 +94,7 @@ async createPerson(data: PersonPayload): Promise<Person> {
   },
 
   async updatePerson(id: number, data: PersonPayload): Promise<Person> {
-    const res = await fetch(`${BASE}/persons/${id}`, {
+    const res = await fetch(`${BASE}/api/persons/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -107,7 +110,7 @@ async createPerson(data: PersonPayload): Promise<Person> {
   },
 
   async deletePerson(id: number): Promise<void> {
-    const res = await fetch(`${BASE}/persons/${id}`, {
+    const res = await fetch(`${BASE}/api/persons/${id}`, {
       method: "DELETE",
     });
 
@@ -119,7 +122,7 @@ async createPerson(data: PersonPayload): Promise<Person> {
   uploadPhoto: async (id: number, file: File): Promise<Person> => {
     const form = new FormData();
     form.append("file", file);
-    const res = await fetch(`${BASE}/persons/${id}/photo`, {
+    const res = await fetch(`${BASE}/api/persons/${id}/photo`, {
       method: "POST", body: form,
     });
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
@@ -128,13 +131,13 @@ async createPerson(data: PersonPayload): Promise<Person> {
 
   
   // ── Relationships ─────────────────────────────────────────────────────────
-  listRelationships: () => req<RelationshipResponse[]>("/relationships/"),
+  listRelationships: () => req<RelationshipResponse[]>("/api/relationships/"),
   getRelatives: (personId: number) =>
-    req<RelativeInfo[]>(`/relationships/person/${personId}`),
+    req<RelativeInfo[]>(`/api/relationships/person/${personId}`),
   createRelationship: (data: RelationshipPayload) =>
-    req<RelationshipResponse>("/relationships/", {
+    req<RelationshipResponse>("/api/relationships/", {
       method: "POST", body: JSON.stringify(data),
     }),
   deleteRelationship: (id: number) =>
-    req<void>(`/relationships/${id}`, { method: "DELETE" }),
+    req<void>(`/api/relationships/${id}`, { method: "DELETE" }),
 };

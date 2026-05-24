@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
-import type  { PersonPayload } from "../api";
+import type { PersonPayload } from "../api";
 
 interface Props {
   editId?: number;
@@ -9,19 +9,11 @@ interface Props {
 }
 
 const EMPTY: PersonPayload = {
-  first_name: "",
-  last_name: "",
+  full_name: "",
   birth_date: null,
   death_date: null,
-  bio: null,
-};
-
-export type PersonPayload = {
-  first_name: string;
-  last_name: string;
-  birth_date?: string | null;
-  death_date?: string | null;
-  bio?: string | null;
+  occupation: null,
+  summary_es: null,
 };
 
 export default function PersonForm({ editId, onBack, onSaved }: Props) {
@@ -36,11 +28,11 @@ export default function PersonForm({ editId, onBack, onSaved }: Props) {
       .getPerson(editId)
       .then((p) =>
         setForm({
-          first_name: p.first_name,
-          last_name: p.last_name,
-          birth_date: p.birth_date,
-          death_date: p.death_date,
-          bio: p.bio,
+          full_name: p.full_name ?? "",
+          birth_date: p.birth_date ?? null,
+          death_date: p.death_date ?? null,
+          occupation: p.occupation ?? null,
+          summary_es: p.summary_es ?? null,
         })
       )
       .finally(() => setLoading(false));
@@ -53,8 +45,7 @@ export default function PersonForm({ editId, onBack, onSaved }: Props) {
 
   function validate(): boolean {
     const e: typeof errors = {};
-    if (!form.first_name.trim()) e.first_name = "Escribe tu nombre";
-    if (!form.last_name.trim()) e.last_name = "Escribe tu apellido 1";
+    if (!form.full_name?.trim()) e.full_name = "Escribe el nombre completo";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -88,32 +79,27 @@ export default function PersonForm({ editId, onBack, onSaved }: Props) {
       </h1>
 
       <form className="person-form" onSubmit={handleSubmit} noValidate>
-        <div className="form-row">
-          <div className="form-field">
-            <label>Nombre *</label>
-            <input
-              value={form.first_name ?? ""}
-              onChange={(e) => set("first_name", e.target.value)}
-              placeholder="Pilar"
-              className={errors.first_name ? "input-error" : ""}
-            />
-            {errors.first_name && (
-              <span className="field-error">{errors.first_name}</span>
-            )}
-          </div>
 
-          <div className="form-field">
-            <label>Apellido *</label>
-            <input
-              value={form.last_name ?? ""}
-              onChange={(e) => set("last_name", e.target.value)}
-              placeholder="Loren"
-              className={errors.last_name ? "input-error" : ""}
-            />
-            {errors.last_name && (
-              <span className="field-error">{errors.last_name}</span>
-            )}
-          </div>
+        <div className="form-field">
+          <label>Nombre completo *</label>
+          <input
+            value={form.full_name ?? ""}
+            onChange={(e) => set("full_name", e.target.value)}
+            placeholder="Pablo Picasso"
+            className={errors.full_name ? "input-error" : ""}
+          />
+          {errors.full_name && (
+            <span className="field-error">{errors.full_name}</span>
+          )}
+        </div>
+
+        <div className="form-field">
+          <label>Ocupación</label>
+          <input
+            value={form.occupation ?? ""}
+            onChange={(e) => set("occupation", e.target.value)}
+            placeholder="Pintor, escritor…"
+          />
         </div>
 
         <div className="form-row">
@@ -139,8 +125,8 @@ export default function PersonForm({ editId, onBack, onSaved }: Props) {
         <div className="form-field">
           <label>Biografía</label>
           <textarea
-            value={form.bio ?? ""}
-            onChange={(e) => set("bio", e.target.value)}
+            value={form.summary_es ?? ""}
+            onChange={(e) => set("summary_es", e.target.value)}
             placeholder="Breve biografía…"
             rows={5}
           />
@@ -158,4 +144,3 @@ export default function PersonForm({ editId, onBack, onSaved }: Props) {
     </div>
   );
 }
-

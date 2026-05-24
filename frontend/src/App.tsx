@@ -1,6 +1,6 @@
 import { useState } from "react";
 import PersonList from "./components/PersonList";
-import PersonCard from "./components/PersonCard";
+import PersonDetailPage from "./components/PersonDetailPage";
 import PersonForm from "./components/PersonForm";
 import FamilyTree from "./components/FamilyTree";
 import FamousPeopleImport from "./components/FamousPeopleImport";
@@ -54,7 +54,7 @@ function goTab(tab: Tab) {
         <div className="header-inner">
           <button className="logo" onClick={() => goTab(activeTab)}>
             <span className="logo-icon">✦</span>
-            <span className="logo-text">Родословная</span>
+            <span className="logo-text">Árbol genealógico</span>
           </button>
 
           <nav className="tab-nav">
@@ -62,25 +62,25 @@ function goTab(tab: Tab) {
               className={`tab-btn ${activeTab === "list" ? "tab-btn--active" : ""}`}
               onClick={() => goTab("list")}
             >
-              Список
+              Lista
             </button>
             <button
               className={`tab-btn ${activeTab === "tree" ? "tab-btn--active" : ""}`}
               onClick={() => goTab("tree")}
             >
-              Дерево
+              Arbol
             </button>
 
             <button
              className={`tab-btn ${activeTab === "import" ? "tab-btn--active" : ""}`}
              onClick={() => goTab("import")}
              >
-             Импорт
+             Import
             </button>
           </nav>
 
           <button className="btn-add" onClick={() => setView({ type: "form", from: activeTab })}>
-            + Добавить
+            + Añadir
           </button>
         </div>
       </header>
@@ -99,7 +99,7 @@ function goTab(tab: Tab) {
          <FamousPeopleImport />
         )}
         {view.type === "card" && (
-          <PersonCard
+          <PersonDetailPage
             id={view.id}
             onBack={goBack}
             onEdit={(id) => setView({ type: "form", editId: id, from: (view as any).from })}

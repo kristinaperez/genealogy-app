@@ -60,7 +60,10 @@ body {
   max-width: 860px; width: 100%;
   margin: 0 auto; padding: 32px 24px;
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
+
 
 /* ─── States ──────────────────────────────────────────────────────────────── */
 .state-msg {
@@ -375,10 +378,15 @@ body {
 .app-main--tree {
   max-width: 100%;
   padding: 0;
-  height: calc(100vh - 57px);  /* вся высота минус хедер */
+  margin: 0;
+  width: 100%;
+  height: calc(100vh - 57px);
+  flex: 1;
 }
+  
+
 .tree-wrap {
-  width: 100%; height: 100%;
+  width: 100%; height: 100%; flex: 1;
 }
 
 /* ─── PersonNode ──────────────────────────────────────────────────────────── */

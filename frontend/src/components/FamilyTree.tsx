@@ -14,7 +14,7 @@ import "@xyflow/react/dist/style.css";
 import type { Edge, Node } from "@xyflow/react";
 
 import { api } from "../api";
-import type { Person } from ".../api";
+import type { Person } from "../api";
 import PersonNode from "./PersonNode";
 
 interface Props {
@@ -149,29 +149,29 @@ export default function FamilyTree({ onSelect }: Props) {
   if (nodes.length === 0) return <div className="state-msg">Añade personas para ver el árbol</div>;
 
   return (
-    <div className="tree-wrap">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onNodeClick={onNodeClick}
-        nodeTypes={nodeTypes}
-        fitView
-        fitViewOptions={{ padding: 0.2 }}
-        minZoom={0.2}
-        maxZoom={2}
-        proOptions={{ hideAttribution: true }}
-      >
-        <Background color="#d8cfc0" gap={24} size={1} />
-        <Controls />
-        <MiniMap
-          nodeColor="#c4743a"
-          maskColor="rgba(245,240,232,0.7)"
-          style={{ border: "1px solid #d8cfc0" }}
-        />
-      </ReactFlow>
-    </div>
-  );
+  <div style={{ width: "100%", height: "calc(100vh - 57px)" }}>
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onNodeClick={onNodeClick}
+      nodeTypes={nodeTypes}
+      fitView
+      fitViewOptions={{ padding: 0.2 }}
+      minZoom={0.2}
+      maxZoom={2}
+      proOptions={{ hideAttribution: true }}
+    >
+      <Background color="#d8cfc0" gap={24} size={1} />
+      <Controls />
+      <MiniMap
+        nodeColor="#c4743a"
+        maskColor="rgba(245,240,232,0.7)"
+        style={{ border: "1px solid #d8cfc0" }}
+      />
+    </ReactFlow>
+  </div>
+ );        
 }
 

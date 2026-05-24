@@ -11,7 +11,7 @@ from app.schemas.relationship import (
     RelativeInfo,
 )
 
-router = APIRouter(prefix="/relationships", tags=["relationships"])
+router = APIRouter(prefix="/api/relationships", tags=["relationships"])
 
 
 # ─── Хелпер: получить человека или 404 ────────────────────────────────────────
@@ -104,9 +104,8 @@ async def get_relatives(person_id: int, db: AsyncSession = Depends(get_db)):
             relatives.append(
                 RelativeInfo(
                     id=other.id,
-                    first_name=other.first_name,
-                    last_name=other.last_name,
-                    photo_url=other.photo_url,
+                    full_name=other.full_name,
+                    main_image_url=other.main_image_url,
                     role=role,
                 )
             )

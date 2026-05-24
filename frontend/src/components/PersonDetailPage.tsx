@@ -1,35 +1,29 @@
 /**
  * PersonDetailPage — полная страница персоны с родственниками, загрузкой фото,
- * редактированием и удалением. Это переименованный оригинальный PersonCard
- * из твоего проекта.
- *
- * Использование:
- *   <PersonDetailPage id={42} onBack={() => navigate(-1)} onEdit={...} onSelect={...} />
+ * редактированием и удалением.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import * as api from "../api"; // твой существующий api-модуль
+import { api } from "../api";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-// Используй свои существующие типы из проекта
 type RelationType = "parent" | "spouse" | "child";
 
 interface Person {
   id: number;
-  first_name: string;
-  last_name: string;
-  birth_date?: string;
-  death_date?: string;
-  bio?: string;
-  photo_url?: string;
+  full_name?: string | null;
+  birth_date?: string | null;
+  death_date?: string | null;
+  summary_es?: string | null;
+  main_image_url?: string | null;
+  occupation?: string | null;
 }
 
 interface RelativeInfo {
   id: number;
-  first_name: string;
-  last_name: string;
-  photo_url?: string;
+  full_name?: string | null;
+  main_image_url?: string | null;
   role: RelationType;
 }
 
@@ -50,12 +44,19 @@ const ROLE_LABEL: Record<RelationType, string> = {
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
-function formatFullDate(iso?: string): string {
+function formatFullDate(iso?: string | null): string {
   if (!iso) return "—";
   const d = new Date(iso);
   return isNaN(d.getTime())
     ? iso
     : d.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+}
+
+function getInitials(fullName?: string | null): string {
+  const parts = (fullName ?? "").trim().split(" ").filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 // ─── Main component ────────────────────────────────────────────────────────────
@@ -80,7 +81,7 @@ export default function PersonDetailPage({ id, onBack, onEdit, onSelect }: Props
       api.getRelatives(id),
     ]);
     setPerson(p);
-    setRelatives(rels);
+    setRelatives(rels as unknown as RelativeInfo[]);
   }, [id]);
 
   useEffect(() => {
@@ -107,7 +108,7 @@ export default function PersonDetailPage({ id, onBack, onEdit, onSelect }: Props
 
   async function handleDelete() {
     if (!person) return;
-    if (!confirm(`Eliminar ${person.first_name} ${person.last_name}?`)) return;
+    if (!confirm(`Eliminar ${person.full_name ?? "esta persona"}?`)) return;
     setDeleting(true);
     try {
       await api.deletePerson(person.id);
@@ -151,7 +152,7 @@ export default function PersonDetailPage({ id, onBack, onEdit, onSelect }: Props
   if (loading) return <div className="state-msg">Загрузка…</div>;
   if (error || !person) return <div className="state-msg error">Ошибка: {error ?? "not found"}</div>;
 
-  const initials = (person.first_name[0] + person.last_name[0]).toUpperCase();
+  const initials = getInitials(person.full_name);
   const groups: RelationType[] = ["parent", "spouse", "child"];
 
   return (
@@ -165,8 +166,8 @@ export default function PersonDetailPage({ id, onBack, onEdit, onSelect }: Props
           onClick={() => fileRef.current?.click()}
           title="Cambiar la foto"
         >
-          {person.photo_url
-            ? <img src={person.photo_url} alt={person.first_name} />
+          {person.main_image_url
+            ? <img src={person.main_image_url} alt={person.full_name ?? ""} />
             : <span className="detail-initials">{initials}</span>
           }
           <div className="photo-overlay">{uploading ? "Cargando…" : "Cambiar la foto"}</div>
@@ -179,7 +180,10 @@ export default function PersonDetailPage({ id, onBack, onEdit, onSelect }: Props
           onChange={handlePhotoChange}
         />
         <div className="detail-identity">
-          <h1 className="detail-name">{person.first_name} {person.last_name}</h1>
+          <h1 className="detail-name">{person.full_name ?? "—"}</h1>
+          {person.occupation && (
+            <p className="detail-occupation">{person.occupation}</p>
+          )}
           <div className="detail-lifespan">
             <span>р. {formatFullDate(person.birth_date)}</span>
             {person.death_date && <span>† {formatFullDate(person.death_date)}</span>}
@@ -188,10 +192,10 @@ export default function PersonDetailPage({ id, onBack, onEdit, onSelect }: Props
       </div>
 
       {/* Биография */}
-      {person.bio && (
+      {person.summary_es && (
         <section className="detail-section">
           <h2 className="section-title">Biografía</h2>
-          <p className="detail-bio">{person.bio}</p>
+          <p className="detail-bio">{person.summary_es}</p>
         </section>
       )}
 
@@ -209,12 +213,12 @@ export default function PersonDetailPage({ id, onBack, onEdit, onSelect }: Props
                 {group.map((r) => (
                   <button key={r.id} className="rel-chip" onClick={() => onSelect(r.id)}>
                     <div className="chip-avatar">
-                      {r.photo_url
-                        ? <img src={r.photo_url} alt={r.first_name} />
-                        : <span>{(r.first_name[0] + r.last_name[0]).toUpperCase()}</span>
+                      {r.main_image_url
+                        ? <img src={r.main_image_url} alt={r.full_name ?? ""} />
+                        : <span>{getInitials(r.full_name)}</span>
                       }
                     </div>
-                    {r.first_name} {r.last_name}
+                    {r.full_name ?? "—"}
                   </button>
                 ))}
               </div>
@@ -243,7 +247,7 @@ export default function PersonDetailPage({ id, onBack, onEdit, onSelect }: Props
               <option value="">— Elige a una persona —</option>
               {allPersons.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.first_name} {p.last_name}
+                  {p.full_name ?? "—"}
                 </option>
               ))}
             </select>
@@ -271,4 +275,3 @@ export default function PersonDetailPage({ id, onBack, onEdit, onSelect }: Props
     </div>
   );
 }
-

@@ -7,13 +7,17 @@ interface Props {
   onAdd: () => void;
 }
 
-function initials(p: Person) {
-  return (p.first_name[0] + p.last_name[0]).toUpperCase();
+function getInitials(p: Person): string {
+  const parts = (p.full_name ?? "").trim().split(" ").filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-function formatDate(d: string | null) {
+function formatDate(d: string | null | undefined): number | null {
   if (!d) return null;
-  return new Date(d).getFullYear();
+  const year = new Date(d).getFullYear();
+  return isNaN(year) ? null : year;
 }
 
 export default function PersonList({ onSelect }: Props) {
@@ -32,10 +36,7 @@ export default function PersonList({ onSelect }: Props) {
 
   const filtered = persons.filter((p) => {
     const q = query.toLowerCase();
-    return (
-      p.first_name.toLowerCase().includes(q) ||
-      p.last_name.toLowerCase().includes(q)
-    );
+    return (p.full_name ?? "").toLowerCase().includes(q);
   });
 
   if (loading) return <div className="state-msg">Загрузка…</div>;
@@ -65,16 +66,14 @@ export default function PersonList({ onSelect }: Props) {
         {filtered.map((p) => (
           <li key={p.id} className="person-card" onClick={() => onSelect(p.id)}>
             <div className="card-photo">
-              {p.photo_url ? (
-                <img src={p.photo_url} alt={p.first_name} />
+              {p.main_image_url ? (
+                <img src={p.main_image_url} alt={p.full_name ?? ""} />
               ) : (
-                <span className="card-initials">{initials(p)}</span>
+                <span className="card-initials">{getInitials(p)}</span>
               )}
             </div>
             <div className="card-info">
-              <span className="card-name">
-                {p.first_name} {p.last_name}
-              </span>
+              <span className="card-name">{p.full_name ?? "—"}</span>
               {(p.birth_date || p.death_date) && (
                 <span className="card-dates">
                   {formatDate(p.birth_date) ?? "?"}
@@ -89,4 +88,3 @@ export default function PersonList({ onSelect }: Props) {
     </div>
   );
 }
-

@@ -1,4 +1,5 @@
-from pydantic import BaseModel, model_validator
+from typing import Optional
+from pydantic import BaseModel, ConfigDict, model_validator
 from app.models.relationship import RelationType
 
 
@@ -15,19 +16,17 @@ class RelationshipCreate(BaseModel):
 
 
 class RelationshipResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     person_a: int
     person_b: int
     type: RelationType
 
-    class Config:
-        from_attributes = True
-
 
 # ── Удобный формат для карточки человека ──────────────────────────────────────
 class RelativeInfo(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
-    first_name: str
-    last_name: str
-    photo_url: str | None
+    full_name: Optional[str] = None
+    main_image_url: Optional[str] = None
     role: str   # "parent" | "child" | "spouse"

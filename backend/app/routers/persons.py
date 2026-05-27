@@ -137,7 +137,7 @@ async def upload_photo(
         raise HTTPException(status_code=400, detail="File must be an image")
 
     url = await s3_upload(file, object_name=f"person_{person_id}")
-    person.photo_url = url
+    person.main_image_url = url
 
     await db.commit()
     await db.refresh(person)

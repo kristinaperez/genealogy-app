@@ -1,4 +1,5 @@
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export type Person = {
   id: number;
@@ -25,6 +26,9 @@ export type PersonPayload = {
 
 export type RelationType = "parent" | "child" | "spouse";
  
+fetch(`${API_URL}/api/persons/`)
+
+
 export interface RelativeInfo {
   id: number;
   full_name?: string | null;
